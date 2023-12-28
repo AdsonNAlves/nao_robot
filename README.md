@@ -11,6 +11,7 @@ MacOS users may need to disable the system Integrity protection.
 
 http://doc.aldebaran.com/2-8/home_nao.html
 http://doc.aldebaran.com/1-14/dev/naoqi/index.html#naoqi-overview
+http://doc.aldebaran.com/2-1/index_dev_guide.html
 
 # Install
 

@@ -1,29 +1,49 @@
-'''
-http://doc.aldebaran.com/2-8/naoqi/vision/alphotocapture-tuto.html
-'''
+# -*- encoding: UTF-8 -*-
 
-# This test demonstrates how to use the ALPhotoCapture module.
-# Note that you might not have this module depending on your distribution
-import os
-import sys
-import time
-from naoqi import ALProxy
+# This is just an example script that shows how images can be accessed
+# through ALVideoDevice in python.
+# Nothing interesting is done with the images in this example.
+# http://doc.aldebaran.com/1-14/dev/python/examples/vision/get_image.html
 
-# Replace this with your robot's IP address
-IP = "172.9.0.86"
-PORT = 9559
+# from naoqi import ALProxy
+from pynaoqi_mate import Mate
+import vision_definitions
 
-# Create a proxy to ALPhotoCapture
-try:
-  photoCaptureProxy = ALProxy("ALPhotoCapture", IP, PORT)
-except Exception, e:
-  print "Error when creating ALPhotoCapture proxy:"
-  print str(e)
-  exit(1)
+# IP = "nao.local"  # Replace here with your NAOqi's IP address.
+# PORT = 9559
 
-# Take 3 pictures in VGA and store them in /home/nao/recordings/cameras/
+m=Mate("172.9.0.86",9559)
+####
+# Create proxy on ALVideoDevice
 
-photoCaptureProxy.setResolution(2)
-photoCaptureProxy.setPictureFormat("jpg")
-photoCaptureProxy.takePictures(3, "Users/adsonalves/Desktop/NAO-NPL/NAO/img", "image")
-print "ok"
+# print "Creating ALVideoDevice proxy to ", IP
+
+# camProxy = ALProxy("ALVideoDevice", IP, PORT)
+
+####
+# Register a Generic Video Module
+
+resolution = vision_definitions.kQVGA
+colorSpace = vision_definitions.kYUVColorSpace
+fps = 30
+
+# nameId = camProxy.subscribe("python_GVM", resolution, colorSpace, fps)
+nameId = m.ALVideoDevice.subscribe("python_GVM", resolution, colorSpace, fps)
+
+print nameId
+
+print 'getting images in local'
+for i in range(0, 20):
+  m.ALVideoDevice.getImageLocal(nameId)
+  m.ALVideoDevice.releaseImage(nameId)
+
+resolution = vision_definitions.kQQVGA
+m.ALVideoDevice.setResolution(nameId, resolution)
+
+print 'getting images in remote'
+for i in range(0, 20):
+  m.ALVideoDevice.getImageRemote(nameId)
+
+m.ALVideoDevice.unsubscribe(nameId)
+
+print 'end of gvm_getImageLocal python script'
