@@ -1,49 +1,56 @@
+#! /usr/bin/env python
 # -*- encoding: UTF-8 -*-
+# http://doc.aldebaran.com/2-8/dev/python/examples/vision/get_image.html#get-an-image
 
-# This is just an example script that shows how images can be accessed
-# through ALVideoDevice in python.
-# Nothing interesting is done with the images in this example.
-# http://doc.aldebaran.com/1-14/dev/python/examples/vision/get_image.html
+"""Example: Shows how images can be accessed through ALVideoDevice"""
 
-# from naoqi import ALProxy
-from pynaoqi_mate import Mate
+import qi
+import argparse
+import sys
+import time
 import vision_definitions
 
-# IP = "nao.local"  # Replace here with your NAOqi's IP address.
-# PORT = 9559
 
-m=Mate("172.9.0.86",9559)
-####
-# Create proxy on ALVideoDevice
 
-# print "Creating ALVideoDevice proxy to ", IP
+def main(session):
+    """
+    This is just an example script that shows how images can be accessed
+    through ALVideoDevice in Python.
+    Nothing interesting is done with the images in this example.
+    """
+    # Get the service ALVideoDevice.
 
-# camProxy = ALProxy("ALVideoDevice", IP, PORT)
+    video_service = session.service("ALVideoDevice")
 
-####
-# Register a Generic Video Module
+    # Register a Generic Video Module
+    resolution = vision_definitions.kQQVGA
+    colorSpace = vision_definitions.kYUVColorSpace
+    fps = 20
 
-resolution = vision_definitions.kQVGA
-colorSpace = vision_definitions.kYUVColorSpace
-fps = 30
+    nameId = video_service.subscribe("python_GVM", resolution, colorSpace, fps)
 
-# nameId = camProxy.subscribe("python_GVM", resolution, colorSpace, fps)
-nameId = m.ALVideoDevice.subscribe("python_GVM", resolution, colorSpace, fps)
+    print 'getting images in remote'
+    for i in range(0, 20):
+        print "getting image " + str(i)
+        video_service.getImageRemote(nameId)
+        time.sleep(0.05)
 
-print nameId
+    video_service.unsubscribe(nameId)
 
-print 'getting images in local'
-for i in range(0, 20):
-  m.ALVideoDevice.getImageLocal(nameId)
-  m.ALVideoDevice.releaseImage(nameId)
 
-resolution = vision_definitions.kQQVGA
-m.ALVideoDevice.setResolution(nameId, resolution)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", type=str, default="172.9.0.86",
+                        help="Robot IP address. On robot or Local Naoqi: use '127.0.0.1'.")
+    parser.add_argument("--port", type=int, default=9559,
+                        help="Naoqi port number")
 
-print 'getting images in remote'
-for i in range(0, 20):
-  m.ALVideoDevice.getImageRemote(nameId)
-
-m.ALVideoDevice.unsubscribe(nameId)
-
-print 'end of gvm_getImageLocal python script'
+    args = parser.parse_args()
+    session = qi.Session()
+    try:
+        session.connect("tcp://" + args.ip + ":" + str(args.port))
+    except RuntimeError:
+        print ("Can't connect to Naoqi at ip \"" + args.ip + "\" on port " + str(args.port) +".\n"
+               "Please check your script arguments. Run with -h option for help.")
+        sys.exit(1)
+    main(session)
